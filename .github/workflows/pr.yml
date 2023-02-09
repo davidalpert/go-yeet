@@ -1,0 +1,65 @@
+name: Pull Request Feedback
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3 # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+
+    - name: Fetch all tags
+      run: git fetch --force --tags
+
+    - name: Setup Reviewdog
+      uses: reviewdog/action-setup@v1
+      with:
+        reviewdog_version: latest # Optional. [latest,nightly,v.X.Y.Z]
+
+    - name: Vale Linter # https://github.com/marketplace/actions/vale-linter
+      uses: errata-ai/vale-action@reviewdog
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        fail_on_error: true
+        files: '["README.md", "CONTRIBUTING.md"]'
+        filter_mode: nofilter
+        reporter: github-pr-check
+        version: 2.17.0
+
+    - name: Setup Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.16.0'
+
+    # - name: Setup Ruby, JRuby and TruffleRuby # for integration testing
+    #   uses: ruby/setup-ruby@v1.117.0
+    #   with:
+    #     ruby-version: 3.0.2
+
+    - name: Install Task
+      uses: arduino/setup-task@v1
+
+    - name: Validate build dependencies
+      run: |
+        ./.tools/doctor.sh
+      continue-on-error: false
+
+    - name: Unit tests
+      run: |
+        task test
+      continue-on-error: false
+
+    # - name: "Features"
+    #   env:
+    #     REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   run: |
+    #     task features | reviewdog -name=features -fail-on-error=true -efm="cucumber %f:%l # Scenario: %m" -diff="git diff FETCH_HEAD" -filter-mode=nofilter -reporter=github-pr-check -tee
+    #   continue-on-error: false
