@@ -1,0 +1,118 @@
+name: Publish Tagged Release
+
+on:
+  push:
+    # run only against tags
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+  # packages: write
+  # issues: write
+
+jobs:
+  printJob:
+    name: Show Release Context
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all tags
+        run: git fetch --force --tags
+
+      - name: Show git details
+        run: |
+          git fetch origin main:main
+          echo ---
+          git log --oneline -4
+          echo --
+          echo gitBranch:
+          git rev-parse --abbrev-ref HEAD
+          echo ---
+          echo gitSHA:
+          git rev-parse --short HEAD
+          echo ---
+          echo tag --contains:
+          git tag --contains
+          echo ---
+          echo branch --contains:
+          git branch --all --contains ${{ github.ref_name }}
+          echo ---
+          echo local branches:
+          git branch -v
+          echo ---
+          echo remote branches:
+          git branch -v -r
+          echo ---
+          echo "git rev-list origin/main...HEAD | wc -l"
+          export N=$(git rev-list origin/main...HEAD | wc -l)
+          echo ">>$N<<"
+          echo ---
+          echo "tag --contains origin/main":
+          git tag --contains origin/main
+          echo ---
+          git tag --contains origin/main | grep "${{ github.ref_name }}"
+
+  goreleaser:
+    name: Package and Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all tags
+        run: git fetch --force --tags
+
+      - name: Fetch origin/main for comparisons
+        run: git fetch origin main:main
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.16
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+
+      - name: Install dependencies
+        run: |
+          go install github.com/restechnica/semverbot/cmd/sbot@latest
+          go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.1
+
+      - name: Unit tests
+        run: |
+          task test
+        env:
+          SKIP_GEN: true
+        continue-on-error: false
+
+      - name: Generate release notes
+        run: |
+          task preview-release-notes
+        env:
+          SKIP_GEN: true
+        continue-on-error: false
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v3
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist --release-notes RELEASE_NOTES.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
+          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
