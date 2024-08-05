@@ -18,6 +18,14 @@ jobs:
     - name: Fetch all tags
       run: git fetch --force --tags
 
+    - name: Install asdf & tools
+      uses: asdf-vm/actions/install@v3
+
+    - name: Install dependencies
+      run: |
+        go install github.com/restechnica/semverbot/cmd/sbot@latest
+        asdf reshim golang
+
     - name: Setup Reviewdog
       uses: reviewdog/action-setup@v1
       with:
@@ -33,19 +41,6 @@ jobs:
         filter_mode: nofilter
         reporter: github-pr-check
         version: 2.17.0
-
-    - name: Setup Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.16.0'
-
-    # - name: Setup Ruby, JRuby and TruffleRuby # for integration testing
-    #   uses: ruby/setup-ruby@v1.117.0
-    #   with:
-    #     ruby-version: 3.0.2
-
-    - name: Install Task
-      uses: arduino/setup-task@v1
 
     - name: Validate build dependencies
       run: |

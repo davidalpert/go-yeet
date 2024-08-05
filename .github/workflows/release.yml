@@ -78,18 +78,13 @@ jobs:
       - name: Fetch origin/main for comparisons
         run: git fetch origin main:main
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.16
-
-      - name: Install Task
-        uses: arduino/setup-task@v1
+      - name: Install asdf & tools
+        uses: asdf-vm/actions/install@v3
 
       - name: Install dependencies
         run: |
           go install github.com/restechnica/semverbot/cmd/sbot@latest
-          go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.1
+          asdf reshim golang
 
       - name: Unit tests
         run: |
