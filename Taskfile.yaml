@@ -16,7 +16,7 @@ tasks:
       - help
     silent: true
 
-  ci:
+  cit:
     desc: CI task; cleans, run tests, and builds
     deps:
       - gen
