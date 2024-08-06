@@ -49,6 +49,7 @@ func NewRootCmd(s printers.IOStreams) *cobra.Command {
 
 	// Register subcommands
 	rootCmd.AddCommand(NewCmdConfig(s))
+	rootCmd.AddCommand(NewCmdConfluence(s))
 	rootCmd.AddCommand(NewCmdVersion(s))
 
 	rootCmd.PersistentFlags().StringVarP(&cfg.File, "config", "c", cfg.File, "config file to use")

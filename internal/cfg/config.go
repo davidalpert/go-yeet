@@ -3,6 +3,7 @@ package cfg
 import (
 	"fmt"
 	"github.com/davidalpert/go-printers/v1"
+	"github.com/davidalpert/go-yeet/internal/atlassian"
 	"github.com/ilyakaznacheev/cleanenv"
 	"os"
 	"path/filepath"
@@ -13,7 +14,7 @@ var File string
 var Dir string
 
 type Config struct {
-	WhoAmiI string `yaml:"who_am_i"`
+	AtlassianCloud atlassian.CloudConfig `yaml:"atlassian_cloud"`
 }
 
 func NewConfig() *Config {
@@ -31,9 +32,7 @@ func (c *Config) Validate() error {
 	}
 	errors := make([]string, 0)
 
-	if c.WhoAmiI == "" {
-		errors = append(errors, "WhoAmI is required")
-	}
+	errors = append(errors, c.AtlassianCloud.Validate("atlassian_cloud")...)
 
 	if len(errors) > 0 {
 		return fmt.Errorf(strings.Join(errors, ", "))
