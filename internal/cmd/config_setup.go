@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/davidalpert/go-printers/v1"
 	"github.com/davidalpert/go-yeet/internal/cfg"
-	"github.com/davidalpert/go-yeet/internal/cmd/adapters"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -60,10 +58,11 @@ func (o *ConfigSetupOptions) Validate() error {
 
 // Run the command
 func (o *ConfigSetupOptions) Run() error {
-	if err := adapters.AskOneWithStreams(o.IOStreams, &survey.Input{
-		Message: "Who Am I",
-		Default: o.Config.WhoAmiI,
-	}, &o.Config.WhoAmiI, survey.WithValidator(survey.Required)); err != nil {
+	if err := o.Config.AtlassianCloud.ConfigureWithSurvey(o.IOStreams); err != nil {
+		return err
+	}
+
+	if err := o.Config.Validate(); err != nil {
 		return err
 	}
 
