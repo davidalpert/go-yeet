@@ -9,6 +9,15 @@ vars:
   CURRENT_VERSION:
     sh: sbot get version
   VERSION: '{{ .NEXT_VERSION | default .CURRENT_VERSION }}'
+  GITBRANCH:
+    sh: 'git rev-parse --abbrev-ref HEAD'
+  GITCOMMITMESSAGE:
+    sh: 'git log -1 --pretty=%s'
+  GITDIRTY:
+    sh: 'if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi'
+  GITSHA:
+    sh: 'git rev-parse --short HEAD'
+  SEMVER: '{{.VERSION}}-{{.GITSHA}}{{ fromJson .GITDIRTY | ternary "+dirty" "" }}'
 
 tasks:
   default:
@@ -19,10 +28,15 @@ tasks:
   cit:
     desc: CI task; cleans, run tests, and builds
     deps:
-      - gen
+      - clean
       - vale
-      - test
       - build
+      - test
+
+  clean:
+    desc: clean built output
+    cmds:
+      - rm -rf ./bin
 
   doctor:
     desc: run doctor.sh to sort out development dependencies
@@ -37,13 +51,25 @@ tasks:
   gen:
     desc: run code-generation
     run: once
+    vars:
+      VERSION: "{{ .NEXT_VERSION | default .VERSION }}"
+      SEMVER: "{{ .SEMVER }}"
     cmds:
-      - go run ./.tools/version_gen.go {{ .CMD_NAME }}
-    env:
-      VERSION: "{{ .VERSION }}"
+      - task: gen:version
+
+  gen:version:
+    desc: updates the version
+    run: once
+    cmds:
+      - echo "{{ .CMD_NAME }}" > ./internal/version/_APPNAME.txt
+      - echo "{{ .VERSION }}" > ./internal/version/_APPVERSION.txt
+      - echo "{{ .GITBRANCH }}" > ./internal/version/_GITBRANCH.txt
+    vars:
+      VERSION: "{{ .NEXT_VERSION | default .VERSION }}"
     status:
-      # - grep "\"{{ .VERSION }}\"" internal/version/detail.go
-      - '[[ -n $SKIP_GEN ]]'
+      - '[[ "{{ .CMD_NAME }}" == "$(cat ./internal/version/_APPNAME.txt)" ]]'
+      - '[[ "{{ .VERSION }}" == "$(cat ./internal/version/_APPVERSION.txt)" ]]'
+      - '[[ "{{ .GITBRANCH }}" == "$(cat ./internal/version/_GITBRANCH.txt)" ]]'
 
 #  bundle:
 #    desc: install ruby gems
