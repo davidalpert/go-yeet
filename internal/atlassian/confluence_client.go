@@ -110,7 +110,7 @@ func (c *Confluence) GetChildPagesOf(pageID int) ([]*models.ChildPageScheme, err
 }
 
 func (c *Confluence) GetPageByID(pageID int, includeChildren bool) (*PageWithChildren, error) {
-	page, response, err := c.Client.Page.Get(context.Background(), pageID, "atlas_doc_format", false, 3)
+	page, response, err := c.Client.Page.Get(context.Background(), pageID, "atlas_doc_format", false, 0)
 	if err != nil {
 		if response != nil {
 			return nil, fmt.Errorf("getting requested page (%d): %d %s: %#v", pageID, response.Code, response.Status, err)
