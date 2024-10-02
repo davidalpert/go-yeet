@@ -3,6 +3,7 @@ package resources
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 
 	"github.com/aybabtme/orderedjson"
@@ -18,17 +19,18 @@ type KindAndTitle struct {
 type Labels struct {
 	Labels []string `json:"labels"`
 }
+
 type YamlResource struct {
-	Kind  string
-	Title string
-	Path  string
+	Kind  string `json:"kind,omitempty" yaml:"kind,omitempty"`
+	Title string `json:"title" yaml:"title"`
+	Path  string `json:"path" yaml:"path"`
 	Node  *yaml.Node
-	Json  string
+	Json  string `json:"json,omitempty" yaml:"json,omitempty"`
 }
 
 var jsonEncoder yqlib.Encoder = yqlib.NewJSONEncoder(yqlib.JsonPreferences{Indent: 0, ColorsEnabled: false, UnwrapScalar: false})
 
-func NewYamlResource(path string, node *yaml.Node) *YamlResource {
+func NewYamlResource(path string, node *yaml.Node) (*YamlResource, error) {
 	setHeadComment(path, node)
 	node.FootComment = "V2"
 
@@ -37,52 +39,68 @@ func NewYamlResource(path string, node *yaml.Node) *YamlResource {
 		Node: node,
 	}
 
-	yr.UpdateJson()
+	err := yr.UpdateJson()
 
-	return yr
+	return yr, err
 }
 
 func (yr *YamlResource) GetParentPath() string {
 	return filepath.Dir(yr.Path)
 }
 
-func (yr *YamlResource) UpdateJson() {
+func (yr *YamlResource) UpdateJson() error {
 	var buf bytes.Buffer
 	var yqNode yqlib.CandidateNode
-	yqNode.UnmarshalYAML(yr.Node, make(map[string]*yqlib.CandidateNode, 0))
-	jsonEncoder.Encode(&buf, &yqNode)
+	if err := yqNode.UnmarshalYAML(yr.Node, make(map[string]*yqlib.CandidateNode, 0)); err != nil {
+		return fmt.Errorf("UpdateJson: UnmarshalYAML: %s: %#v", err, yr.Node)
+	}
+	if err := jsonEncoder.Encode(&buf, &yqNode); err != nil {
+		return fmt.Errorf("UpdateJson: EncodeJSON: %s", err)
+	}
 	yr.Json = buf.String()
-	yr.UpdateKindAndTitle()
+	return yr.UpdateKindAndTitle()
 }
 
 // this is ugly, but it works for now
-func (yr *YamlResource) UpdateKindAndTitle() {
+func (yr *YamlResource) UpdateKindAndTitle() error {
+	if yr == nil {
+		return fmt.Errorf("UpdateKindAndTitle: cannot update a nil resource")
+	}
+
 	kindAndTitle := &KindAndTitle{}
 	if err := json.Unmarshal([]byte(yr.Json), &kindAndTitle); err != nil {
-		panic(err)
+		return fmt.Errorf("UpdateKindAndTitle: %s", err)
 	}
 
 	yr.Kind = kindAndTitle.Kind
 	yr.Title = kindAndTitle.Title
+
+	return nil
 }
 
-func (yr *YamlResource) GetLabels() []string {
-	labels := &Labels{}
-	if err := json.Unmarshal([]byte(yr.Json), &labels); err != nil {
-		panic(err)
+func (yr *YamlResource) GetLabels() ([]string, error) {
+	if yr == nil {
+		return nil, fmt.Errorf("update kind and title: cannot update a nil resource")
 	}
 
-	return labels.Labels
+	labels := &Labels{}
+	err := json.Unmarshal([]byte(yr.Json), &labels)
+
+	return labels.Labels, err
 }
 
-func (yr *YamlResource) ToObject() map[string]interface{} {
+func (yr *YamlResource) ToObject() (map[string]interface{}, error) {
 	var obj map[string]interface{}
+
+	if yr == nil {
+		return nil, fmt.Errorf("update kind and title: cannot update a nil resource")
+	}
 
 	if err := json.Unmarshal([]byte(yr.Json), &obj); err != nil {
 		panic(err)
 	}
 
-	return obj
+	return obj, nil
 }
 
 func (yr *YamlResource) ToOrderedMap() orderedjson.Map {

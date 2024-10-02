@@ -86,7 +86,10 @@ func (o *SourceValidateOptions) Run() error {
 }
 
 func (o *SourceValidateOptions) validateDirectory() error {
-	yrs := resources.LoadYamlResources(o.SourcePath)
+	yrs, err := resources.LoadYamlResources(o.SourcePath)
+	if err != nil {
+		return fmt.Errorf("load yaml resources: %s", err)
+	}
 
 	return o.WithTableWriter(o.SourcePath, func(t *tablewriter.Table) {
 		t.SetHeader([]string{
