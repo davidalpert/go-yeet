@@ -70,7 +70,7 @@ A quick discussion to coordinate a proposed change before you start can save hou
     ```
   * open a terminal with `go1.18` as the linked `go` binary
 
-### Get the code
+### Get the Code
 
 1. [Fork the repository on Github](https://github.com/davidalpert/go-yeet/fork)
 

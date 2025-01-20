@@ -80,7 +80,12 @@ tasks:
   vale:
     desc: run linting rules against markdown files
     run: once
+    env:
+      VALE_CONFIG_PATH: .vale.ini
+      VALE_STYLES_PATH: .styles
     cmds:
+    - vale ls-vars
+    - vale ls-dirs
     - vale README.md CONTRIBUTING.md # we don't valedate CHANGELOG.md as that reflects historical commit summaries
     # TODO: run only when not in GITHUB_ACTIONS
 

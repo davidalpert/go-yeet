@@ -1,13 +1,11 @@
 Github
-Make
-make
+[Mm]ake
 Makefile
 rbenv
 nodenv
 asdf
 aruba
-Golang
-golang
+[Gg]olang
 nodejs
 go-yeet
 yeet
