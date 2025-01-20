@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/davidalpert/go-yeet/internal/diagnostics"
 	"path/filepath"
 
 	"github.com/aybabtme/orderedjson"
@@ -51,13 +52,16 @@ func (yr *YamlResource) GetParentPath() string {
 func (yr *YamlResource) UpdateJson() error {
 	var buf bytes.Buffer
 	var yqNode yqlib.CandidateNode
+	diagnostics.Log.Debug("unmarshalYAML")
 	if err := yqNode.UnmarshalYAML(yr.Node, make(map[string]*yqlib.CandidateNode, 0)); err != nil {
 		return fmt.Errorf("UpdateJson: UnmarshalYAML: %s: %#v", err, yr.Node)
 	}
+	diagnostics.Log.Debug("encoding as JSON")
 	if err := jsonEncoder.Encode(&buf, &yqNode); err != nil {
 		return fmt.Errorf("UpdateJson: EncodeJSON: %s", err)
 	}
 	yr.Json = buf.String()
+	diagnostics.Log.Debug("updating kind and title")
 	return yr.UpdateKindAndTitle()
 }
 
@@ -68,6 +72,7 @@ func (yr *YamlResource) UpdateKindAndTitle() error {
 	}
 
 	kindAndTitle := &KindAndTitle{}
+	diagnostics.Log.Debug("unmarshalJSON")
 	if err := json.Unmarshal([]byte(yr.Json), &kindAndTitle); err != nil {
 		return fmt.Errorf("UpdateKindAndTitle: %s", err)
 	}

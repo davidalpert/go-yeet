@@ -57,8 +57,13 @@ func (yrl YamlResourceLoader) loadYamlResources(dir string) ([]*YamlResource, er
 			}
 
 			relPath := path[dirStringLength+1:]
+			absPath, err := filepath.Abs(path)
+			if err != nil {
+				return fmt.Errorf("resolving relative path '%s' to absolute", path)
+			}
 			diagnostics.Log.WithFields(log.Fields{
 				"path":            path,
+				"absPath":         absPath,
 				"dir":             dir,
 				"dirStringLength": dirStringLength,
 				"relPath":         relPath,
@@ -80,7 +85,7 @@ func (yrl YamlResourceLoader) loadYamlResources(dir string) ([]*YamlResource, er
 			} else if IsYamlFile(path) {
 				yr, loadErr := yrl.LoadYamlResource(dir, relPath)
 				if loadErr != nil {
-					return fmt.Errorf("loading file %#v: %s", relPath, loadErr)
+					return fmt.Errorf("loading file %#v: %s", absPath, loadErr)
 				}
 				if isIndexFile(path) {
 					parent := parents[filepath.Dir(relPath)]
