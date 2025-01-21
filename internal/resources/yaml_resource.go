@@ -35,6 +35,8 @@ func NewYamlResource(path string, node *yaml.Node) (*YamlResource, error) {
 	setHeadComment(path, node)
 	node.FootComment = "V2"
 
+	diagnostics.Log.Infof("loading yaml resource: %s", path)
+
 	yr := &YamlResource{
 		Path: path,
 		Node: node,
@@ -54,14 +56,18 @@ func (yr *YamlResource) UpdateJson() error {
 	var yqNode yqlib.CandidateNode
 	diagnostics.Log.Debug("unmarshalYAML")
 	if err := yqNode.UnmarshalYAML(yr.Node, make(map[string]*yqlib.CandidateNode, 0)); err != nil {
-		return fmt.Errorf("UpdateJson: UnmarshalYAML: %s: %#v", err, yr.Node)
+		if readYaml, yerr := yaml.Marshal(yr.Node); yerr != nil {
+			return fmt.Errorf("UpdateJson: yaml.Marshal: %s: %#v", yerr, yr.Node)
+		} else {
+			return fmt.Errorf("UpdateJson: UnmarshalYAML: %s: %#v", err, string(readYaml))
+		}
 	}
 	diagnostics.Log.Debug("encoding as JSON")
 	if err := jsonEncoder.Encode(&buf, &yqNode); err != nil {
 		return fmt.Errorf("UpdateJson: EncodeJSON: %s", err)
 	}
 	yr.Json = buf.String()
-	diagnostics.Log.Debug("updating kind and title")
+	diagnostics.Log.Debug("UpdateJson: updating kind and title")
 	return yr.UpdateKindAndTitle()
 }
 
@@ -128,5 +134,4 @@ func setHeadComment(path string, node *yaml.Node) {
 	} else {
 		node.HeadComment = path + "\n" + node.HeadComment
 	}
-
 }

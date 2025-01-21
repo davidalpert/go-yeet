@@ -125,7 +125,7 @@ func LoadSingleYamlResource(file string) (*YamlResource, error) {
 }
 
 func (yrl YamlResourceLoader) LoadYamlResource(spaceRootDir, relFilePath string) (*YamlResource, error) {
-	diagnostics.Log.Debug("LoadYamlResource - reading file")
+	diagnostics.Log.Debugf("LoadYamlResource - reading file - %s", relFilePath)
 	y, err := yrl.LoadYaml(filepath.Join(spaceRootDir, relFilePath))
 	if err != nil {
 		return nil, fmt.Errorf("LoadYamlResource: %s", err)
@@ -136,7 +136,6 @@ func (yrl YamlResourceLoader) LoadYamlResource(spaceRootDir, relFilePath string)
 		return nil, fmt.Errorf("LoadYamlResources: unmarshal: %s", err)
 	}
 
-	diagnostics.Log.Debug("LoadYamlResource - ")
 	return NewYamlResource(relFilePath, r)
 }
 
