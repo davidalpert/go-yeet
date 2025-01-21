@@ -39,7 +39,14 @@ func NewYamlResource(path string, node *yaml.Node) (*YamlResource, error) {
 
 	yr := &YamlResource{
 		Path: path,
-		Node: node,
+	}
+
+	if node == nil {
+		return nil, fmt.Errorf("NewYamlResource: node is nil")
+	} else if node.Kind == yaml.DocumentNode && len(node.Content) == 1 {
+		yr.Node = node.Content[0] // dereference a resource Document into its child Mapping
+	} else {
+		yr.Node = node
 	}
 
 	err := yr.UpdateJson()
