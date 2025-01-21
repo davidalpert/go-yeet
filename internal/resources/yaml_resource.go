@@ -32,10 +32,10 @@ type YamlResource struct {
 var jsonEncoder yqlib.Encoder = yqlib.NewJSONEncoder(yqlib.JsonPreferences{Indent: 0, ColorsEnabled: false, UnwrapScalar: false})
 
 func NewYamlResource(path string, node *yaml.Node) (*YamlResource, error) {
-	setHeadComment(path, node)
-	node.FootComment = "V2"
+	diagnostics.Log.Infof("loading yaml resource: %s: %v", path, node.Kind)
 
-	diagnostics.Log.Infof("loading yaml resource: %s", path)
+	prependPathIntoHeadComment(path, node)
+	normalizeFootComment(node)
 
 	yr := &YamlResource{
 		Path: path,
@@ -131,14 +131,14 @@ func (yr *YamlResource) ToOrderedMap() orderedjson.Map {
 	return object
 }
 
-func setHeadComment(path string, node *yaml.Node) {
-	if node.Kind == 0 {
-		node.Kind = yaml.MappingNode
-	}
-
+func prependPathIntoHeadComment(path string, node *yaml.Node) {
 	if node.HeadComment == "" {
 		node.HeadComment = path
 	} else {
 		node.HeadComment = path + "\n" + node.HeadComment
 	}
+}
+
+func normalizeFootComment(node *yaml.Node) {
+	node.FootComment = "V2"
 }
