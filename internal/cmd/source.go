@@ -13,6 +13,7 @@ func NewCmdSource(s printers.IOStreams) *cobra.Command {
 		//Args:    cobra.NoArgs,
 	}
 
+	cmd.AddCommand(NewCmdSourceRender(s))
 	cmd.AddCommand(NewCmdSourceValidate(s))
 
 	return cmd

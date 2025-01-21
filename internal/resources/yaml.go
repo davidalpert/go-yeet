@@ -7,6 +7,7 @@ import (
 	"github.com/davidalpert/go-yeet/internal/diagnostics"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -112,6 +113,13 @@ func (yrl YamlResourceLoader) loadYamlResources(dir string) ([]*YamlResource, er
 
 			return nil
 		})
+
+	// explicitly sort by path to ensure that the results read and are processed in a deterministic sequence
+	sort.Slice(yrs, func(i, j int) bool {
+		left := yrs[i]
+		right := yrs[i]
+		return left.Path < right.Path
+	})
 
 	return yrs, err
 }
