@@ -90,8 +90,14 @@ func (yr *YamlResource) UpdateKindAndTitle() error {
 		return fmt.Errorf("UpdateKindAndTitle: %s", err)
 	}
 
-	yr.Kind = kindAndTitle.Kind
-	yr.Title = kindAndTitle.Title
+	if kindAndTitle.Kind == "" {
+		yr.Kind = "wiki"
+	} else {
+		yr.Kind = kindAndTitle.Kind
+	}
+	if kindAndTitle.Title != "" {
+		yr.Title = kindAndTitle.Title
+	}
 
 	return nil
 }
