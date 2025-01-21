@@ -41,6 +41,14 @@ func (yrl YamlResourceLoader) loadYamlResources(dir string) ([]*YamlResource, er
 	yrs := make([]*YamlResource, 0)
 	parents := make(map[string]*YamlResource, 0)
 
+	// HACK: preload the root item so it can be populated later
+	rootPath := "."
+	yr, loadErr := getDefaultDirYamlResource(rootPath)
+	if loadErr != nil {
+		return nil, fmt.Errorf("loading dir %#v: %s", rootPath, loadErr)
+	}
+	parents[rootPath] = yr
+
 	dir = filepath.Clean(dir)
 	dirStringLength := len(dir)
 
@@ -81,18 +89,22 @@ func (yrl YamlResourceLoader) loadYamlResources(dir string) ([]*YamlResource, er
 
 				// save a pointer to the directory YamlResource for later in case an index.yml is found
 				parents[relPath] = yr
-				yrs = append(yrs, yr)
 			} else if IsYamlFile(path) {
 				yr, loadErr := yrl.LoadYamlResource(dir, relPath)
 				if loadErr != nil {
 					return fmt.Errorf("loading file %#v: %s", absPath, loadErr)
 				}
 				if isIndexFile(path) {
-					parent := parents[filepath.Dir(relPath)]
-					parent.Kind = yr.Kind
-					parent.Title = yr.Title
-					parent.Json = yr.Json
-					parent.Node = yr.Node
+					parentPath := filepath.Dir(relPath)
+					parent := parents[parentPath]
+					if parent != nil {
+						parent.Kind = yr.Kind
+						parent.Title = yr.Title
+						parent.Json = yr.Json
+						parent.Node = yr.Node
+						parents[parentPath] = parent
+						yrs = append(yrs, yr)
+					}
 				} else {
 					yrs = append(yrs, yr)
 				}
