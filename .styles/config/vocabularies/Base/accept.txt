@@ -9,6 +9,8 @@ aruba
 nodejs
 go-yeet
 yeet
+yeeting
+[Cc]ode
 GPL
 url
 Zsh
