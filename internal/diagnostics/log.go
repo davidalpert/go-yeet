@@ -7,6 +7,7 @@ import (
 	"github.com/davidalpert/go-yeet/internal/diagnostics/plaintext"
 	"github.com/davidalpert/go-yeet/internal/env"
 	"github.com/davidalpert/go-yeet/internal/version"
+	"gopkg.in/op/go-logging.v1"
 	"io"
 	"os"
 	"path/filepath"
@@ -64,5 +65,45 @@ func ConfigureLogger(streams printers.IOStreams) (cleanupFn func()) {
 
 	Log.WithField("destination", logDestination).Debug("logging initialized")
 
+	// ----------------------------
+	// configure go-logging to use a matching backend and level
+	//
+
+	// Example format string. Everything except the message has a custom color
+	// which is dependent on the log level. Many fields have a custom output
+	// formatting too, eg. the time returns the hour down to the milli second.
+	var format = logging.MustStringFormatter(
+		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	)
+
+	// For demo purposes, create two backend for os.Stderr.
+	backend2 := logging.NewLogBackend(sink, "", 0)
+	backend2Leveled := logging.AddModuleLevel(backend2)
+	loggingLevel := mapLogLevelToLoggingLevel(logLevel)
+	backend2Leveled.SetLevel(loggingLevel, "")
+
+	// For messages written to backend2 we want to add some additional
+	// information to the output, including the used log level and the name of
+	// the function.
+	backend2Formatted := logging.NewBackendFormatter(backend2Leveled, format)
+
+	// Set the backends to be used.
+	logging.SetBackend(backend2Formatted)
+
 	return
+}
+
+func mapLogLevelToLoggingLevel(lvl log.Level) logging.Level {
+	switch lvl {
+	case log.DebugLevel:
+		return logging.DEBUG
+	case log.InfoLevel:
+		return logging.INFO
+	case log.WarnLevel:
+		return logging.WARNING
+	case log.ErrorLevel:
+		return logging.ERROR
+	default:
+		return logging.CRITICAL
+	}
 }

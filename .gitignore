@@ -46,4 +46,4 @@ deploy-local.sh
 # build output
 RELEASE_NOTES.md
 dist/
-
+example/

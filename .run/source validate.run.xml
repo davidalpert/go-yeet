@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="source validate" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="go-yeet" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="source validate ./.local/content" />
+    <envs>
+      <env name="YEET_LOG_LEVEL" value="info" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/davidalpert/go-yeet/cmd/yeet" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/internal/resources/yaml_resource.go" />
+    <method v="2" />
+  </configuration>
+</component>
