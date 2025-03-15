@@ -15,3 +15,5 @@ Zsh
 Bash
 Fish
 API
+TIP
+[Yy][Aa][Mm][Ll]

@@ -13,8 +13,9 @@ import (
 )
 
 type KindAndTitle struct {
-	Kind  string `json:"kind"`
-	Title string `json:"title"`
+	Kind  string                 `json:"kind"`
+	Title string                 `json:"title"`
+	Props map[string]interface{} `json:"props"`
 }
 
 type Labels struct {
@@ -25,8 +26,9 @@ type YamlResource struct {
 	Kind  string `json:"kind,omitempty" yaml:"kind,omitempty"`
 	Title string `json:"title" yaml:"title"`
 	Path  string `json:"path" yaml:"path"`
-	Node  *yaml.Node
 	Json  string `json:"json,omitempty" yaml:"json,omitempty"`
+	Node  *yaml.Node
+	Props map[string]interface{} `json:"props"`
 }
 
 var jsonEncoder yqlib.Encoder = yqlib.NewJSONEncoder(yqlib.JsonPreferences{Indent: 0, ColorsEnabled: false, UnwrapScalar: false})
@@ -97,6 +99,9 @@ func (yr *YamlResource) UpdateKindAndTitle() error {
 	}
 	if kindAndTitle.Title != "" {
 		yr.Title = kindAndTitle.Title
+	}
+	if kindAndTitle.Props != nil {
+		yr.Props = kindAndTitle.Props
 	}
 
 	return nil

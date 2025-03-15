@@ -107,6 +107,52 @@ Visit the [Releases](https://github.com/davidalpert/go-yeet/releases) page to fi
 
 - TODO; coming as the project nears v1.0
 
+### Generate Markdown locally from yaml and golang text/templates
+
+> [!TIP]
+> Run the following command to generate this the source files used in this example:
+> ```shell
+> yeet example --out-dir ./.local
+> ```
+
+Given
+- a set of yaml files located at `./.local/content` like:
+
+    ```yaml
+    title: Service Registry
+    body_md: |
+        This page lists our services
+    props:
+        some:
+            random:
+                key: hello from a nested property
+    ```
+- a set of templates for each `kind` located at `./.local/templates` like:
+
+    ```gotemplate
+    # {{ .Title }}
+    
+    {{ if .Props -}}
+    {{ index (index (index .Props "some") "random") "key" }}
+    {{ end -}}
+    ```
+
+When
+
+- you run:
+    ```shell
+    yeet source render ./.local/content --template-dir .local/templates --output-path .local/out
+    ```
+
+Then
+- you get markdown files in the `--output-path` location like this one:
+
+    ```markdown
+    # Service Registry
+    
+    hello from a nested property
+    ```
+
 <!-- Troubleshooting -->
 ## Troubleshooting
 
