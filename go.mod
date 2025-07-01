@@ -12,7 +12,7 @@ require (
 	github.com/go-task/task/v3 v3.38.0
 	github.com/goreleaser/goreleaser v1.26.2
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/kisielk/godepgraph v0.0.0-20240411160502-0f324ca7e282
+	github.com/kisielk/godepgraph v1.0.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/siderolabs/conform v0.1.0-alpha.30
 	github.com/smartystreets/goconvey v1.8.1
